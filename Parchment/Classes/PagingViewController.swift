@@ -611,10 +611,15 @@ open class PagingViewController:
 
     // MARK: UICollectionViewDelegate
 
-    open func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let pagingItem = pagingController.visibleItems.pagingItem(for: indexPath)
-        delegate?.pagingViewController(self, didSelectItem: pagingItem)
-        pagingController.select(indexPath: indexPath, animated: true)
+    open func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+      let pagingItem = pagingController.visibleItems.pagingItem(for: indexPath)
+      
+      if delegate?.pagingViewController(self, shouldScrollTo: pagingItem) ?? true {
+          
+          delegate?.pagingViewController(self, didSelectItem: pagingItem)
+          pagingController.select(indexPath: indexPath, animated: true)
+          
+      }
     }
 
     open func collectionView(_: UICollectionView, targetContentOffsetForProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {

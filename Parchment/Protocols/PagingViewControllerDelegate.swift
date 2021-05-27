@@ -5,6 +5,15 @@ import UIKit
 /// can used to determine when the user navigates between view
 /// controllers.
 public protocol PagingViewControllerDelegate: AnyObject {
+    
+    /// Called before transition is about to start.
+    ///
+    /// - Parameter pagingItem: The `PagingItem` being scrolled to
+    /// - Return:  Bool indicating whether the new page should be scrolled to.
+    func pagingViewController(
+      _: PagingViewController,
+      shouldScrollTo pagingItem: PagingItem?) -> Bool
+
     /// Called whenever a scroll transition is in progress.
     ///
     /// - Parameter currentPagingItem: The currently selected `PagingItem`
@@ -65,6 +74,14 @@ public protocol PagingViewControllerDelegate: AnyObject {
 }
 
 public extension PagingViewControllerDelegate {
+    
+    func pagingViewController(
+        _: PagingViewController,
+        shouldScrollTo pagingItem: PagingItem?) -> Bool
+    {
+      return true
+    }
+    
     func pagingViewController(
         _: PagingViewController,
         isScrollingFromItem _: PagingItem,
