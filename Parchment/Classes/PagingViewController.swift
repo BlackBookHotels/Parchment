@@ -192,10 +192,12 @@ open class PagingViewController:
 
     /// Determine how users can interact with the page view controller.
     /// _Default: .scrolling_
-    public var contentInteraction: PagingContentInteraction = .scrolling {
-        didSet {
-            configureContentInteraction()
-        }
+    public var contentInteraction: PagingContentInteraction {
+      get { return options.contentInteraction }
+      set { 
+        options.contentInteraction = newValue
+        configureContentInteraction()
+      }
     }
 
     /// The current state of the menu items. Indicates whether an item
@@ -475,15 +477,9 @@ open class PagingViewController:
     open override func viewDidLoad() {
         super.viewDidLoad()
 
-        #if swift(>=4.2)
-            addChild(pageViewController)
-            pagingView.configure()
-            pageViewController.didMove(toParent: self)
-        #else
-            addChildViewController(pageViewController)
-            pagingView.configure()
-            pageViewController.didMove(toParentViewController: self)
-        #endif
+        addChild(pageViewController)
+        pagingView.configure()
+        pageViewController.didMove(toParent: self)
 
         pageViewController.delegate = self
         pageViewController.dataSource = self

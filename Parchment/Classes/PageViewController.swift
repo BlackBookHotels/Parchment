@@ -116,8 +116,6 @@ public final class PageViewController: UIViewController {
             if #available(iOS 9.0, *),
                 UIView.userInterfaceLayoutDirection(for: view.semanticContentAttribute) == .rightToLeft {
                 return true
-            } else if UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft {
-                return true
             } else {
                 return false
             }
@@ -168,11 +166,11 @@ public final class PageViewController: UIViewController {
         manager.viewDidDisappear(animated)
     }
 
-    public override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.willTransition(to: newCollection, with: coordinator)
+    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
         coordinator.animate(alongsideTransition: { _ in
             self.manager.viewWillTransitionSize()
-    })
+        })
     }
 
     // MARK: Public Methods

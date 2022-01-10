@@ -7,7 +7,7 @@ import UIKit
 /// check. Found a possible fix here: https://stackoverflow.com/questions/58233454/how-to-use-swiftui-in-framework
 /// This might be related to the issue discussed in this thread:
 /// https://forums.swift.org/t/weak-linking-of-frameworks-with-greater-deployment-targets/26017/24
-#if canImport(SwiftUI) && canImport(Combine)
+#if canImport(SwiftUI) && !(os(iOS) && (arch(i386) || arch(arm)))
 
     /// `PageView` provides a SwiftUI wrapper around `PagingViewController`.
     /// It can be used with any fixed array of `PagingItem`s. Use the
@@ -34,7 +34,7 @@ import UIKit
         public init(
             options: PagingOptions = PagingOptions(),
             items: [Item],
-            selectedIndex: Binding<Int> = .constant(0),
+            selectedIndex: Binding<Int> = .constant(Int.max),
             content: @escaping (Item) -> Page
         ) {
             _selectedIndex = selectedIndex
@@ -134,8 +134,20 @@ import UIKit
                 // the new items the next time this method is called.
                 pagingViewController.items = items
 
-                let index = $selectedIndex.wrappedValue
-                pagingViewController.select(index: index, animated: true)
+                // HACK: If the user don't pass a selectedIndex binding, the
+                // default parameter is set to .constant(Int.max) which allows
+                // us to check here if a binding was passed in or not (it
+                // doesn't seem possible to make the binding itself optional).
+                // This check is needed because we cannot update a .constant
+                // value. When the user scroll to another page, the
+                // selectedIndex binding will always be the same, so calling
+                // `select(index:)` will select the wrong page. This fixes a bug
+                // where the wrong page would be selected when rotating.
+                guard selectedIndex != Int.max else {
+                    return
+                }
+
+                pagingViewController.select(index: selectedIndex, animated: true)
             }
         }
 
@@ -152,7 +164,10 @@ import UIKit
 
             func pagingViewController(_: PagingViewController, viewControllerAt index: Int) -> UIViewController {
                 let view = parent.content(parent.items[index])
-                return UIHostingController(rootView: view)
+                let hostingViewController = UIHostingController(rootView: view)
+                let backgroundColor = parent.options.pagingContentBackgroundColor
+                hostingViewController.view.backgroundColor = backgroundColor
+                return hostingViewController
             }
 
             func pagingViewController(_: PagingViewController, pagingItemAt index: Int) -> PagingItem {
@@ -164,12 +179,13 @@ import UIKit
                                       startingViewController _: UIViewController?,
                                       destinationViewController _: UIViewController,
                                       transitionSuccessful _: Bool) {
-                parent.onDidScroll?(pagingItem)
-
                 if let item = pagingItem as? Item,
                     let index = parent.items.firstIndex(where: { $0.isEqual(to: item) }) {
                     parent.selectedIndex = index
                 }
+
+                parent.onDidScroll?(pagingItem)
+
             }
 
             func pagingViewController(_: PagingViewController,
